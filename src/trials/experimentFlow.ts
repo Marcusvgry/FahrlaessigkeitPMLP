@@ -1,7 +1,5 @@
 import surveyPlugin from "@jspsych/plugin-survey";
 import jsPsychHtmlButtonResponse from "@jspsych/plugin-html-button-response";
-import jsPsychSurveyLikert from "@jspsych/plugin-survey-likert";
-import jsPsychHtmlSliderResponse from "@jspsych/plugin-html-slider-response";
 import { instructionTexts } from "./instructionTexts";
 import {
   demographicPagesOne,
@@ -10,9 +8,8 @@ import {
   MANIPULATION_CHECK_PROMPT,
   VIGNETTE_INTRO_HTML,
   NEGLIGENCE_ITEMS,
-  LIKERT_LABELS_1_TO_7,
-  LIKERT_LABELS_1_TO_5,
   NEGLIGENCE_SLIDER_PROMPT_HTML,
+  NEGLIGENCE_SLIDER_HTML,
 } from "./questionnaires";
 import { shuffle } from "../experiment/conditions";
 import type { Condition, VideoCondition } from "../experiment/conditions";
@@ -29,7 +26,7 @@ const surveyDefaults = {
   completeText: "Weiter",
 };
 
-const VIGNETTE_SAMPLE_SIZE = 2;
+const VIGNETTE_SAMPLE_SIZE = 15;
 const DEFAULT_VIGNETTE_CONDITION: Condition = {
   offloading: "no",
   consequences: "high",
@@ -55,7 +52,6 @@ const VIDEO_PLACEHOLDERS: Record<
 
 type FlowOptions = {
   devMode?: boolean;
-  pilotStudy?: boolean;
 };
 
 type SurveyElement = {
@@ -101,7 +97,7 @@ function buildVideoHtml(condition: VideoCondition): string {
   const { label, src } = VIDEO_PLACEHOLDERS[condition];
   return `
     <div class="instructions">
-      <video controls style="width: 100%; max-width: 800px;">
+      <video controls style="width: 100%; max-width: 1200px;">
         <source src="${src}" type="video/mp4" />
         <p>Ihr Browser unterstützt die Videowiedergabe nicht.</p>
       </video>
@@ -435,7 +431,7 @@ export function makeNegligenceDefinition() {
 }
 
 export function buildVignetteTimeline(options: FlowOptions = {}) {
-  const { devMode = false, pilotStudy = false } = options;
+  const { devMode = false } = options;
   const randomized = shuffle(vignetteTemplates);
   const selected = randomized.slice(0, VIGNETTE_SAMPLE_SIZE);
   const paired = selected.map((v) => ({
@@ -448,24 +444,6 @@ export function buildVignetteTimeline(options: FlowOptions = {}) {
   for (const item of paired) {
     const text = renderVignetteText(item.vignette, item.cond);
     const stim = wrapStimulusHtml(text);
-    const justificationId = "pilot-justification";
-    const justificationHtml = pilotStudy
-      ? `
-        <div class="pilot-justification" style="margin-top: 1rem;">
-          <p>Bitte begründen Sie ihre Entscheidung in wenigen Worten:</p>
-          <textarea id="${justificationId}" rows="3" style="width: 100%;"></textarea>
-        </div>
-      `
-      : "";
-    const requireMovement = !devMode;
-
-    const questions = NEGLIGENCE_ITEMS.map((statement) => ({
-      prompt: `<p style="margin-top: 1rem;">${statement}</p>`,
-      labels: LIKERT_LABELS_1_TO_7,
-      required: !devMode,
-    }));
-
-    let justificationText = "";
 
     // Erste Seite: Nur die Vignette anzeigen
     timeline.push({
@@ -483,7 +461,7 @@ export function buildVignetteTimeline(options: FlowOptions = {}) {
       },
     });
 
-    // Zweite Seite: Likert-Bewertung UND Slider auf derselben Seite
+    // Zweite Seite: Likert-Bewertung UND Slider
     const likertElements = NEGLIGENCE_ITEMS.map((statement, index) => ({
       type: "rating",
       name: `likert_${index}`,
@@ -494,65 +472,6 @@ export function buildVignetteTimeline(options: FlowOptions = {}) {
       maxRateDescription: "trifft vollständig zu",
       isRequired: !devMode,
     }));
-
-    const sliderHtml = `
-      <div style="margin-top: 1rem;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-          <span>0 (gar nicht fahrlässig)</span>
-          <span>100 (sehr fahrlässig)</span>
-        </div>
-        <style>
-          #negligence-slider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 8px;
-            background: #d3d3d3;
-            border-radius: 4px;
-            outline: none;
-            cursor: pointer;
-            position: relative;
-            z-index: 10;
-            touch-action: none;
-          }
-          #negligence-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            background: #444;
-            border-radius: 50%;
-            cursor: grab;
-            position: relative;
-            z-index: 11;
-          }
-          #negligence-slider::-webkit-slider-thumb:active {
-            cursor: grabbing;
-          }
-          #negligence-slider::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            background: #444;
-            border-radius: 50%;
-            cursor: grab;
-            border: none;
-          }
-          #negligence-slider::-moz-range-thumb:active {
-            cursor: grabbing;
-          }
-          .slider-container {
-            position: relative;
-            padding: 10px 0;
-          }
-        </style>
-        <div class="slider-container">
-          <input type="range" id="negligence-slider" name="negligence_slider" min="0" max="100" value="50" oninput="document.getElementById('slider-value').textContent = this.value">
-        </div>
-        <div style="text-align: center; margin-top: 0.5rem;">
-          <strong><span id="slider-value">50</span></strong>
-        </div>
-      </div>
-    `;
 
     const surveyJson = {
       ...surveyDefaults,
@@ -570,62 +489,61 @@ export function buildVignetteTimeline(options: FlowOptions = {}) {
             {
               type: "html",
               name: "slider_section",
-              html: NEGLIGENCE_SLIDER_PROMPT_HTML + sliderHtml,
+              html: NEGLIGENCE_SLIDER_PROMPT_HTML + NEGLIGENCE_SLIDER_HTML,
             },
           ],
         },
       ],
     };
 
-    // Eindeutiger Key für diesen Slider, um den Wert in window zu speichern
-    // (Closures funktionieren nicht zuverlässig zwischen on_load und on_finish)
     const vignetteId = item.vignette.id;
     const sliderKey = `slider_value_${vignetteId}`;
-    (window as any)[sliderKey] = 50; // Default-Wert
+    (window as any)[sliderKey] = 50; // Default-Wert initialisieren
 
     timeline.push({
       type: surveyPlugin,
       survey_json: surveyJson,
-      on_load: function () {
-        // Key hier nochmal definieren, um Closure-Probleme zu vermeiden
-        const currentKey = `slider_value_${vignetteId}`;
-
+      on_load: () => {
         const checkSlider = setInterval(() => {
           const slider = document.getElementById(
             "negligence-slider",
           ) as HTMLInputElement;
+          const completeButton = document.querySelector(
+            ".sd-btn--action.sd-navigation__complete-btn",
+          ) as HTMLButtonElement;
 
           if (slider) {
             clearInterval(checkSlider);
 
-            // Initialen Wert sofort speichern
-            (window as any)[currentKey] = parseInt(slider.value, 10);
-
-            // Bei jeder Änderung in window speichern
+            // Wert bei jeder Änderung speichern
             const updateSliderValue = () => {
-              (window as any)[currentKey] = parseInt(slider.value, 10);
-              console.log(
-                `Slider ${currentKey} updated to:`,
-                (window as any)[currentKey],
-              );
+              (window as any)[sliderKey] = parseInt(slider.value, 10);
             };
-
             slider.addEventListener("input", updateSliderValue);
             slider.addEventListener("change", updateSliderValue);
             slider.addEventListener("mouseup", updateSliderValue);
             slider.addEventListener("touchend", updateSliderValue);
+
+            // Button erst aktivieren wenn Slider bewegt wurde (außer im devMode)
+            if (completeButton && !devMode) {
+              completeButton.disabled = true;
+
+              const markSliderMoved = () => {
+                completeButton.disabled = false;
+              };
+
+              slider.addEventListener("mousedown", markSliderMoved);
+              slider.addEventListener("touchstart", markSliderMoved);
+              slider.addEventListener("change", markSliderMoved);
+            }
           }
         }, 100);
       },
-      on_finish: function (data: any) {
-        // Key hier nochmal definieren, um Closure-Probleme zu vermeiden
-        const currentKey = `slider_value_${vignetteId}`;
-        // Aus window lesen - das überlebt das DOM-Entfernen
-        const sliderValue = (window as any)[currentKey];
-        console.log(`on_finish reading ${currentKey}:`, sliderValue);
-        data.negligence_slider = sliderValue;
-        // Aufräumen um Memory Leaks zu vermeiden
-        delete (window as any)[currentKey];
+      on_finish: (data: any) => {
+        // Wert aus window lesen (überlebt DOM-Entfernung)
+        const finalValue = (window as any)[sliderKey];
+        data.response.negligence_slider = finalValue;
+        delete (window as any)[sliderKey]; // Aufräumen
       },
       data: {
         vignette_id: item.vignette.id,

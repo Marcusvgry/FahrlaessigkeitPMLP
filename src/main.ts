@@ -7,6 +7,18 @@ import { buildTimeline } from "./experiment/timeline";
 import { saveExperimentData } from "./experiment/data/save";
 import { experimentConfig } from "./experiment/config";
 
+// Generiere eine eindeutige Participant-ID
+function generateParticipantId(length = 15): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+const participantId = generateParticipantId();
+
 const jsPsych = initJsPsych({
   display_element: "jspsych-target",
   on_finish: async () => {
@@ -20,6 +32,11 @@ const jsPsych = initJsPsych({
       console.error("[jsPsych] Speichern fehlgeschlagen:", error);
     }
   },
+});
+
+// Füge participant_id zu allen Daten hinzu
+jsPsych.data.addProperties({
+  participant_id: participantId,
 });
 
 const timeline = buildTimeline(jsPsych);
