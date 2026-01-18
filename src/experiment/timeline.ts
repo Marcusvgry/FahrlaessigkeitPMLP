@@ -23,7 +23,6 @@ import { getVideoConditionLabel, pickVideoCondition } from "./conditions";
 
 export type Timeline = Parameters<JsPsych["run"]>[0];
 export const devMode = true; // Set true to bypass required inputs while testing.
-export const pilotStudy = false; // Set true to collect a short justification below the negligence prompt.
 
 export function buildTimeline(_jsPsych: JsPsych): Timeline {
   const timeline: Timeline = [];
@@ -51,7 +50,7 @@ export function buildTimeline(_jsPsych: JsPsych): Timeline {
       ? []
       : [makeMemoryRecall(videoCondition, { devMode })]),
     makeVignetteIntro(),
-    ...buildVignetteTimeline({ devMode, pilotStudy }),
+    ...buildVignetteTimeline({ devMode}),
     makeDebriefing(),
   ];
 
