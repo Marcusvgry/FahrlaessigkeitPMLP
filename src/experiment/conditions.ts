@@ -2,12 +2,19 @@
 export type Offloading = "yes" | "no";
 export type Consequences = "low" | "high";
 export type Condition = { offloading: Offloading; consequences: Consequences };
+export type VideoCondition = "reliability" | "fallibility" | "neutral";
 
 export const ALL_CONDITIONS: Condition[] = [
   { offloading: "yes", consequences: "low" },
   { offloading: "yes", consequences: "high" },
   { offloading: "no", consequences: "low" },
   { offloading: "no", consequences: "high" },
+];
+
+export const VIDEO_CONDITIONS: VideoCondition[] = [
+  "reliability",
+  "fallibility",
+  "neutral",
 ];
 
 export function shuffle<T>(arr: T[]): T[] {
@@ -17,6 +24,18 @@ export function shuffle<T>(arr: T[]): T[] {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+export function pickVideoCondition(): VideoCondition {
+  return shuffle(VIDEO_CONDITIONS)[0];
+}
+
+export function getVideoConditionLabel(
+  condition: VideoCondition
+): "A" | "B" | "C" {
+  if (condition === "reliability") return "A";
+  if (condition === "fallibility") return "B";
+  return "C";
 }
 
 /**
