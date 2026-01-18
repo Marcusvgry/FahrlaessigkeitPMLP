@@ -11,7 +11,7 @@ import {
   NEGLIGENCE_SLIDER_PROMPT_HTML,
   NEGLIGENCE_SLIDER_HTML,
 } from "./questionnaires";
-import { shuffle } from "../experiment/conditions";
+import { shuffle, makeBalancedConditions } from "../experiment/conditions";
 import type { Condition, VideoCondition } from "../experiment/conditions";
 import {
   renderVignetteText,
@@ -27,10 +27,6 @@ const surveyDefaults = {
 };
 
 const VIGNETTE_SAMPLE_SIZE = 15;
-const DEFAULT_VIGNETTE_CONDITION: Condition = {
-  offloading: "no",
-  consequences: "high",
-};
 
 const VIDEO_PLACEHOLDERS: Record<
   VideoCondition,
@@ -434,9 +430,13 @@ export function buildVignetteTimeline(options: FlowOptions = {}) {
   const { devMode = false } = options;
   const randomized = shuffle(vignetteTemplates);
   const selected = randomized.slice(0, VIGNETTE_SAMPLE_SIZE);
-  const paired = selected.map((v) => ({
+
+  // Balancierte Bedingungen: Bei 15 Vignetten kommen 3 Bedingungen 4x vor, 1 Bedingung 3x
+  const conditions = makeBalancedConditions(selected.length);
+
+  const paired = selected.map((v, idx) => ({
     vignette: v,
-    cond: DEFAULT_VIGNETTE_CONDITION,
+    cond: conditions[idx],
   }));
 
   const timeline: any[] = [];
