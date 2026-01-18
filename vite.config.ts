@@ -1,10 +1,11 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
 
 export default defineConfig({
+  base: "/FahrlaessigkeitPMLP/",
   build: {
-    sourcemap: true
+    sourcemap: true,
   },
   server: {
-    port: 5173
-  }
+    port: 5173,
+  },
 });
