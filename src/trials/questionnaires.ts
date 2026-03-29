@@ -74,15 +74,44 @@ export const MPMI_ITEMS = [
   "Ich versuche Dinge, die ich regelmäßig tun muss, immer zur selben Zeit zu tun (z.B. ein Medikament abends immer direkt vor dem Zähneputzen einzunehmen).",
 ];
 
-export const MANIPULATION_CHECK_ITEMS = [
+export const MANIPULATION_CHECK_ITEMS_AB = [
   "Das prospektive Gedächtnis beschreibt die Fähigkeit, sich an geplante Handlungen zu erinnern, die zu einem späteren Zeitpunkt ausgeführt werden sollen.",
   "Die Leistungsfähigkeit des prospektiven Gedächtnisses wird im Alltag häufig überschätzt.",
   "Die Leistungsfähigkeit des prospektiven Gedächtnisses wird im Alltag häufig unterschätzt.",
-  "Das prospektive Gedächtnis funktioniert unabhängig von Aufmerksamkeit, Stress oder Ablenkung.",
   "Das prospektive Gedächtnis gilt als fehleranfällig, da es stark von situativen und kognitiven Faktoren abhängt.",
-  "Das menschliche Gedächtnis – einschließlich des prospektiven Gedächtnisses – ist grundsätzlich leistungsfähig und stellt eine wichtige kognitive Fähigkeit dar, die den Menschen unter anderem von vielen Tieren unterscheidet.",
+  "Das menschliche Gedächtnis, einschließlich des prospektiven Gedächtnisses, ist grundsätzlich leistungsfähig und stellt eine wichtige kognitive Fähigkeit dar, die den Menschen unter anderem von vielen Tieren unterscheidet.",
   "Wichtige oder persönlich bedeutsame Vorhaben werden im prospektiven Gedächtnis meist zuverlässiger erinnert als weniger wichtige Aufgaben.",
-];
+  "Auch wenn einem etwas sehr wichtig ist, kann es dennoch passieren, dass man es vergisst.",
+] as const;
+
+export const MANIPULATION_CHECK_ITEMS_C = [
+  "Viele alltägliche Handlungen laufen automatisch ab, ohne dass man viel darüber nachdenkt.",
+  "Routinen entstehen ausschließlich durch bewusste Planung.",
+  "Routinen spielen im Alltag der meisten Menschen keine Rolle.",
+  "Wiederholte Abläufe können Entscheidungen im Alltag erleichtern.",
+  "Routinen können dabei helfen, den Alltag zu strukturieren.",
+  "Alle Routinen sind für Menschen grundsätzlich schädlich.",
+] as const;
+
+export const MANIPULATION_CHECK_CORRECT_ANSWERS = {
+  reliability: [
+    MANIPULATION_CHECK_ITEMS_AB[0],
+    MANIPULATION_CHECK_ITEMS_AB[2],
+    MANIPULATION_CHECK_ITEMS_AB[4],
+    MANIPULATION_CHECK_ITEMS_AB[5],
+  ],
+  fallibility: [
+    MANIPULATION_CHECK_ITEMS_AB[0],
+    MANIPULATION_CHECK_ITEMS_AB[1],
+    MANIPULATION_CHECK_ITEMS_AB[3],
+    MANIPULATION_CHECK_ITEMS_AB[6],
+  ],
+  neutral: [
+    MANIPULATION_CHECK_ITEMS_C[0],
+    MANIPULATION_CHECK_ITEMS_C[3],
+    MANIPULATION_CHECK_ITEMS_C[4],
+  ],
+} as const;
 
 export const MANIPULATION_CHECK_PROMPT =
   "Welche Aussagen treffen auf den Inhalt des Videos zu?";

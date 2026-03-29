@@ -45,13 +45,14 @@ export function buildTimeline(_jsPsych: JsPsych): Timeline {
     makePmQuestionnaire({ devMode }),
     makeVideoIntro(videoCondition),
     makeVideoTrial(videoCondition),
-    makeManipulationCheck(videoCondition, { devMode }),
+    makeManipulationCheck(_jsPsych, videoCondition, { devMode }),
     ...(videoCondition === "neutral"
       ? []
       : [makeMemoryRecall(videoCondition, { devMode })]),
     makeVignetteIntro(),
+    makeNegligenceDefinition({ devMode }),
     ...buildVignetteTimeline({ devMode}),
-    makeDebriefing(),
+    makeDebriefing(videoCondition),
   ];
 
   const wasScreenedOut = () =>

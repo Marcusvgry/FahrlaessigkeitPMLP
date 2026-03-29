@@ -1,10 +1,13 @@
 import surveyPlugin from "@jspsych/plugin-survey";
 import jsPsychHtmlButtonResponse from "@jspsych/plugin-html-button-response";
+import type { JsPsych } from "jspsych";
 import { instructionTexts } from "./instructionTexts";
 import {
   demographicPagesOne,
   MPMI_ITEMS,
-  MANIPULATION_CHECK_ITEMS,
+  MANIPULATION_CHECK_CORRECT_ANSWERS,
+  MANIPULATION_CHECK_ITEMS_AB,
+  MANIPULATION_CHECK_ITEMS_C,
   MANIPULATION_CHECK_PROMPT,
   VIGNETTE_INTRO_HTML,
   NEGLIGENCE_ITEMS,
@@ -87,6 +90,30 @@ function relaxSurveyPages(pages: SurveyPage[]): SurveyPage[] {
     ...page,
     elements: page.elements?.map(relaxSurveyElement),
   }));
+}
+
+function hasExactSelections(
+  actualSelections: unknown,
+  expectedSelections: readonly string[],
+): boolean {
+  if (!Array.isArray(actualSelections)) {
+    return false;
+  }
+
+  if (actualSelections.length !== expectedSelections.length) {
+    return false;
+  }
+
+  const selectedValues = new Set(
+    actualSelections.filter(
+      (value): value is string => typeof value === "string",
+    ),
+  );
+
+  return (
+    selectedValues.size === expectedSelections.length &&
+    expectedSelections.every((value) => selectedValues.has(value))
+  );
 }
 
 function buildVideoHtml(condition: VideoCondition): string {
@@ -301,29 +328,26 @@ export function makeVideoTrial(condition: VideoCondition) {
 }
 
 export function makeManipulationCheck(
+  jsPsych: JsPsych,
   condition: VideoCondition,
   options: FlowOptions = {},
 ) {
   const { devMode = false } = options;
-  const elements =
+  const choices =
     condition === "neutral"
-      ? [
-          {
-            type: "html",
-            name: "manipulation_check_placeholder",
-            html: `<div class="instructions"><p>Platzhalter.</p></div>`,
-          },
-        ]
-      : [
-          {
-            type: "checkbox",
-            name: "manipulation_check",
-            title: MANIPULATION_CHECK_PROMPT,
-            choices: MANIPULATION_CHECK_ITEMS,
-            isRequired: !devMode,
-            colCount: 1,
-          },
-        ];
+      ? MANIPULATION_CHECK_ITEMS_C
+      : MANIPULATION_CHECK_ITEMS_AB;
+  const expectedSelections = MANIPULATION_CHECK_CORRECT_ANSWERS[condition];
+  const elements = [
+    {
+      type: "checkbox",
+      name: "manipulation_check",
+      title: MANIPULATION_CHECK_PROMPT,
+      choices,
+      isRequired: !devMode,
+      colCount: 1,
+    },
+  ];
 
   const surveyJson = {
     ...surveyDefaults,
@@ -344,6 +368,19 @@ export function makeManipulationCheck(
     type: surveyPlugin,
     data: { block: "manipulation_check", video_condition: condition },
     survey_json,
+    on_finish: (data: any) => {
+      const response = (data.response ?? data.responses ?? {}) as Record<
+        string,
+        unknown
+      >;
+      const passed = hasExactSelections(
+        response.manipulation_check,
+        expectedSelections,
+      );
+
+      data.manipulation_check_passed = passed;
+      jsPsych.data.addProperties({ manipulation_check_passed: passed });
+    },
   };
 }
 
@@ -416,13 +453,63 @@ export function makeVignetteIntro() {
   };
 }
 
-export function makeNegligenceDefinition() {
+export function makeNegligenceDefinition(options: FlowOptions = {}) {
+  const { devMode = false } = options;
+  const confirmationText =
+    "Ich versichere, die Instruktionen und die Definition von Fahrlässigkeit aufmerksam gelesen zu haben.";
+
+  const surveyJson = {
+    ...surveyDefaults,
+    showTitle: false,
+    pages: [
+      {
+        name: "negligence_definition",
+        elements: [
+          {
+            type: "html",
+            name: "negligence_definition_text",
+            html: instructionTexts.negligenceDefinition,
+          },
+          {
+            type: "checkbox",
+            name: "negligence_definition_confirmation",
+            title: " ",
+            isRequired: !devMode,
+            minSelectedChoices: 1,
+            colCount: 1,
+            validators: [
+              {
+                type: "answercount",
+                minCount: 1,
+                text: "Bitte bestätigen Sie, dass Sie die Definition aufmerksam gelesen haben.",
+              },
+            ],
+            choices: [confirmationText],
+          },
+        ],
+      },
+    ],
+  };
+
+  const survey_json = devMode
+    ? { ...surveyJson, pages: relaxSurveyPages(surveyJson.pages) }
+    : surveyJson;
+
   return {
-    type: jsPsychHtmlButtonResponse,
+    type: surveyPlugin,
     css_classes: "instruction-screen",
     data: { block: "negligence_definition" },
-    stimulus: instructionTexts.negligenceDefinition,
-    choices: ["Weiter"],
+    survey_json,
+    on_finish: (data: any) => {
+      const response = (data.response ?? data.responses ?? {}) as Record<
+        string,
+        unknown
+      >;
+      const selections =
+        (response.negligence_definition_confirmation as string[] | undefined) ??
+        [];
+      data.definition_confirmed = selections.includes(confirmationText);
+    },
   };
 }
 
@@ -559,13 +646,18 @@ export function buildVignetteTimeline(options: FlowOptions = {}) {
   return timeline;
 }
 
-export function makeDebriefing() {
+export function makeDebriefing(condition: VideoCondition) {
+  const stimulus =
+    condition === "neutral"
+      ? instructionTexts.debriefingC
+      : instructionTexts.debriefingAB;
+
   return {
     type: jsPsychHtmlButtonResponse,
     css_classes: "instruction-screen",
     data: { block: "debriefing" },
-    stimulus: instructionTexts.debriefing,
-    choices: ["Weiter zu Prolific"],
+    stimulus,
+    choices: ["Studie abschließen"],
   };
 }
 

@@ -37,6 +37,7 @@ const jsPsych = initJsPsych({
 // Füge participant_id zu allen Daten hinzu
 jsPsych.data.addProperties({
   participant_id: participantId,
+  manipulation_check_passed: null,
 });
 
 const timeline = buildTimeline(jsPsych);
