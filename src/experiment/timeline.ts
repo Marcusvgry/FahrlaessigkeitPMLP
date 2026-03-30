@@ -28,10 +28,14 @@ export function buildTimeline(_jsPsych: JsPsych): Timeline {
   const timeline: Timeline = [];
 
   const videoCondition = pickVideoCondition();
+  const conditionGroup = getVideoConditionLabel(videoCondition);
   _jsPsych.data.addProperties({
     video_condition: videoCondition,
-    condition_group: getVideoConditionLabel(videoCondition),
+    condition_group: conditionGroup,
   });
+  console.info(
+    `[jsPsych] Zugewiesene Startgruppe: ${conditionGroup} (video_condition: ${videoCondition})`,
+  );
 
   const welcome = makeWelcome();
   const informedConsentOne = makeInformedConsentOne();
@@ -51,7 +55,7 @@ export function buildTimeline(_jsPsych: JsPsych): Timeline {
       : [makeMemoryRecall(videoCondition, { devMode })]),
     makeVignetteIntro(),
     makeNegligenceDefinition({ devMode }),
-    ...buildVignetteTimeline({ devMode}),
+    ...buildVignetteTimeline({ devMode }),
     makeDebriefing(videoCondition),
   ];
 
