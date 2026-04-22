@@ -22,7 +22,7 @@ import { experimentConfig } from "./config";
 import { getVideoConditionLabel, pickVideoCondition } from "./conditions";
 
 export type Timeline = Parameters<JsPsych["run"]>[0];
-export const devMode = true; // Set true to bypass required inputs while testing.
+export const devMode = false; // Set true to bypass required inputs while testing.
 
 export function buildTimeline(_jsPsych: JsPsych): Timeline {
   const timeline: Timeline = [];

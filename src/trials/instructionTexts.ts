@@ -15,7 +15,7 @@ export const instructionTexts: InstructionTexts = {
       <p><strong>Wer führt diese Studie durch und worum geht es?</strong><br>
       Ich bin eine Bachelor-Studentin der Psychologie der Universität Heidelberg. Im Rahmen meiner Abschlussarbeit in der Allgemeinen Psychologie unter der Betreuung von Prof. Dr. Jan Rummel (jan.rummel@psychologie.uni-heidelberg.de) untersuche ich, wie Personen die Fahrlässigkeit von Handlungen in verschiedenen Alltagssituationen beurteilen.</p>
 
-      <><strong>Wie ist der Ablauf der Studie?</strong><br>
+      <strong>Wie ist der Ablauf der Studie?</strong><br>
       
       Bei dieser Studie handelt es sich um eine einmalige Online-Studie mit einer Bearbeitungsdauer von etwa X Minuten.<br>
 
@@ -138,7 +138,6 @@ Da die Datenerhebung anonym erfolgt, ist ein nachträglicher Widerruf der Nutzun
       <p>Ich möchte Sie freundlich darum bitten, sich <strong>nicht mit anderen Teilnehmenden über die Inhalte, Fragestellungen oder Abläufe der Studie auszutauschen</strong>. Ein solcher Austausch könnte die Ergebnisse verfälschen und die wissenschaftliche Aussagekraft der Untersuchung beeinträchtigen.</p>
       <p>Vielen Dank für Ihr Verständnis und Ihre Unterstützung der Forschung.</p>
       <p>Ihre Teilnahme war freiwillig, alle Angaben werden anonym ausgewertet. Wenn Sie Fragen zur Studie haben oder Ihre Daten nachträglich zurückziehen möchten, können Sie sich jederzeit an die Studienleitung wenden.</p>
-      <p>Sie können das Browserfenster nun schließen.</p>
     </div>
   `,
 };
