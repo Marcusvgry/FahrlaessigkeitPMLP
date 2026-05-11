@@ -1,5 +1,6 @@
 import surveyPlugin from "@jspsych/plugin-survey";
 import jsPsychHtmlButtonResponse from "@jspsych/plugin-html-button-response";
+import jsPsychVideoButtonResponse from "@jspsych/plugin-video-button-response";
 import type { JsPsych } from "jspsych";
 import { instructionTexts } from "./instructionTexts";
 import {
@@ -318,12 +319,15 @@ export function makeVideoIntro(condition: VideoCondition) {
 }
 
 export function makeVideoTrial(condition: VideoCondition) {
+  const { src } = VIDEO_PLACEHOLDERS[condition];
   return {
-    type: jsPsychHtmlButtonResponse,
+    type: jsPsychVideoButtonResponse,
     css_classes: "instruction-screen",
     data: { block: "video", video_condition: condition },
-    stimulus: buildVideoHtml(condition),
+    stimulus: [src],
     choices: ["Weiter"],
+    controls: true,
+    response_allowed_while_playing: false,
   };
 }
 
