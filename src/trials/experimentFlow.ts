@@ -15,7 +15,7 @@ import {
   NEGLIGENCE_SLIDER_PROMPT_HTML,
   NEGLIGENCE_SLIDER_HTML,
 } from "./questionnaires";
-import { shuffle, makeBalancedConditions } from "../experiment/conditions";
+import { shuffle } from "../experiment/conditions";
 import type { Condition, VideoCondition } from "../experiment/conditions";
 import {
   renderVignetteText,
@@ -30,7 +30,33 @@ const surveyDefaults = {
   completeText: "Weiter",
 };
 
-const VIGNETTE_SAMPLE_SIZE = 15;
+/**
+ * Feste Vignettenauswahl der Studie: sechs Vignetten, alle ohne Offloading,
+ * je dreimal niedrige und dreimal hohe Konsequenz. `templateId` verweist auf die
+ * Nummerierung im ursprünglichen Vignettendokument, `number` auf die Nummerierung
+ * eins bis sechs der finalen Auswahl. Die Reihenfolge in dieser Liste ist nur die
+ * Referenzreihenfolge; dargeboten wird pro Teilnehmenden eine zufällige Permutation.
+ */
+const STUDY_VIGNETTES: {
+  number: number;
+  templateId: number;
+  cond: Condition;
+}[] = [
+  { number: 1, templateId: 3, cond: { offloading: "no", consequences: "high" } },
+  { number: 2, templateId: 7, cond: { offloading: "no", consequences: "low" } },
+  { number: 3, templateId: 12, cond: { offloading: "no", consequences: "low" } },
+  {
+    number: 4,
+    templateId: 13,
+    cond: { offloading: "no", consequences: "high" },
+  },
+  {
+    number: 5,
+    templateId: 23,
+    cond: { offloading: "no", consequences: "high" },
+  },
+  { number: 6, templateId: 30, cond: { offloading: "no", consequences: "low" } },
+];
 
 const VIDEO_PLACEHOLDERS: Record<
   VideoCondition,
@@ -519,20 +545,24 @@ export function makeNegligenceDefinition(options: FlowOptions = {}) {
 
 export function buildVignetteTimeline(options: FlowOptions = {}) {
   const { devMode = false } = options;
-  const randomized = shuffle(vignetteTemplates);
-  const selected = randomized.slice(0, VIGNETTE_SAMPLE_SIZE);
+  const templatesById = new Map(vignetteTemplates.map((v) => [v.id, v]));
 
-  // Balancierte Bedingungen: Bei 15 Vignetten kommen 3 Bedingungen 4x vor, 1 Bedingung 3x
-  const conditions = makeBalancedConditions(selected.length);
-
-  const paired = selected.map((v, idx) => ({
-    vignette: v,
-    cond: conditions[idx],
-  }));
+  const paired = shuffle(
+    STUDY_VIGNETTES.map(({ number, templateId, cond }) => {
+      const vignette = templatesById.get(templateId);
+      if (!vignette) {
+        throw new Error(
+          `Vignette mit der Template-ID ${templateId} existiert nicht in vignetteTemplates.`,
+        );
+      }
+      return { vignetteNumber: number, vignette, cond };
+    }),
+  );
 
   const timeline: any[] = [];
 
-  for (const item of paired) {
+  for (const [index, item] of paired.entries()) {
+    const position = index + 1;
     const text = renderVignetteText(item.vignette, item.cond);
     const stim = wrapStimulusHtml(text);
 
@@ -544,6 +574,8 @@ export function buildVignetteTimeline(options: FlowOptions = {}) {
       choices: ["Weiter zur Bewertung"],
       data: {
         vignette_id: item.vignette.id,
+        vignette_number: item.vignetteNumber,
+        position,
         domain: item.vignette.domain,
         offloading: item.cond.offloading,
         consequences: item.cond.consequences,
@@ -638,6 +670,8 @@ export function buildVignetteTimeline(options: FlowOptions = {}) {
       },
       data: {
         vignette_id: item.vignette.id,
+        vignette_number: item.vignetteNumber,
+        position,
         domain: item.vignette.domain,
         offloading: item.cond.offloading,
         consequences: item.cond.consequences,
