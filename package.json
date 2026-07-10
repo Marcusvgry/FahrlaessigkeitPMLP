@@ -19,6 +19,7 @@
     "@jspsych/plugin-html-slider-response": "^2.0.0",
     "@jspsych/plugin-survey": "^2.0.0",
     "@jspsych/plugin-survey-likert": "^2.0.0",
+    "@jspsych/plugin-video-button-response": "^2.1.1",
     "express": "^4.21.1",
     "jspsych": "^8.0.0"
   },
