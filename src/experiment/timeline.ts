@@ -48,7 +48,7 @@ export function buildTimeline(_jsPsych: JsPsych): Timeline {
     makeQuestionnaireIntro(),
     makePmQuestionnaire({ devMode }),
     makeVideoIntro(videoCondition),
-    makeVideoTrial(videoCondition),
+    makeVideoTrial(videoCondition, { devMode }),
     makeManipulationCheck(_jsPsych, videoCondition, { devMode }),
     ...(videoCondition === "neutral"
       ? []

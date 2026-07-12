@@ -143,14 +143,16 @@ function hasExactSelections(
   );
 }
 
-function buildVideoHtml(condition: VideoCondition): string {
+/** Ersetzt im devMode das Video, das lokal noch nicht vorliegt. */
+function buildVideoPlaceholderHtml(condition: VideoCondition): string {
   const { label, src } = VIDEO_PLACEHOLDERS[condition];
   return `
     <div class="instructions">
-      <video controls style="width: 100%; max-width: 1200px;">
-        <source src="${src}" type="video/mp4" />
-        <p>Ihr Browser unterstützt die Videowiedergabe nicht.</p>
-      </video>
+      <div style="border: 2px dashed #999; border-radius: 8px; padding: 4rem 1.5rem; max-width: 1200px; margin: 0 auto; text-align: center;">
+        <p style="margin-top: 0;"><strong>Platzhalter statt Video (nur im devMode)</strong></p>
+        <p>${label}</p>
+        <p style="color: #666;"><code>${src}</code></p>
+      </div>
     </div>
   `;
 }
@@ -344,8 +346,26 @@ export function makeVideoIntro(condition: VideoCondition) {
   };
 }
 
-export function makeVideoTrial(condition: VideoCondition) {
+export function makeVideoTrial(
+  condition: VideoCondition,
+  options: FlowOptions = {},
+) {
+  const { devMode = false } = options;
   const { src } = VIDEO_PLACEHOLDERS[condition];
+
+  // Die Videodateien werden erst beim Deployment ergänzt. Auf dem Dev-Server
+  // würde der Video-Trial deshalb auf ein Video warten, das nie lädt.
+  // import.meta.env.DEV ist im Produktions-Build immer false.
+  if (devMode || import.meta.env.DEV) {
+    return {
+      type: jsPsychHtmlButtonResponse,
+      css_classes: "instruction-screen",
+      data: { block: "video", video_condition: condition, video_skipped: true },
+      stimulus: buildVideoPlaceholderHtml(condition),
+      choices: ["Weiter"],
+    };
+  }
+
   return {
     type: jsPsychVideoButtonResponse,
     css_classes: "instruction-screen",
